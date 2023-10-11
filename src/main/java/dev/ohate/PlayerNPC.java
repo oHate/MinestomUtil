@@ -4,20 +4,20 @@ import dev.ohate.commonlib.StringUtil;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.util.TriState;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
-import net.minestom.server.coordinate.Vec;
 import net.minestom.server.entity.*;
 import net.minestom.server.entity.metadata.PlayerMeta;
-import net.minestom.server.event.EventHandler;
 import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.player.PlayerEntityInteractEvent;
-import net.minestom.server.network.packet.server.play.*;
+import net.minestom.server.network.packet.server.play.EntityHeadLookPacket;
+import net.minestom.server.network.packet.server.play.EntityRotationPacket;
+import net.minestom.server.network.packet.server.play.PlayerInfoUpdatePacket;
+import net.minestom.server.network.packet.server.play.TeamsPacket;
 import net.minestom.server.scoreboard.Team;
-import net.minestom.server.timer.SchedulerManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -48,6 +48,7 @@ public class PlayerNPC extends LivingEntity {
     private final PlayerSkin skin;
     private final boolean facePlayer;
     private final Consumer<PlayerEntityInteractEvent> interaction;
+    private final List<HologramLine> holograms = new ArrayList<>();
 
     private PlayerNPC(Builder builder) {
         super(EntityType.PLAYER);
@@ -57,6 +58,8 @@ public class PlayerNPC extends LivingEntity {
         this.skin = builder.skin;
         this.facePlayer = builder.facePlayer;
         this.interaction = builder.interaction;
+
+        holograms.addAll(builder.holograms);
 
         PlayerMeta meta = new PlayerMeta(this, metadata);
 
@@ -95,6 +98,21 @@ public class PlayerNPC extends LivingEntity {
         );
 
         return new PlayerInfoUpdatePacket(Action.ADD_PLAYER, playerEntry);
+    }
+
+    @Override
+    public void spawn() {
+        super.spawn();
+
+        updateHologramLocation();
+    }
+
+    public void updateHologramLocation() {
+        for (int i = holograms.size() - 1; i >= 0; i--) {
+            double height = 1 + HologramLine.OFFSET + (holograms.size() - i + 1) * HologramLine.OFFSET;
+
+            holograms.get(i).setInstance(instance, position.add(0, height, 0));
+        }
     }
 
     @Override
@@ -145,6 +163,7 @@ public class PlayerNPC extends LivingEntity {
         private PlayerSkin skin = DEFAULT_SKIN;
         private boolean facePlayer = false;
         private Consumer<PlayerEntityInteractEvent> interaction = e -> {};
+        private List<HologramLine> holograms = new ArrayList<>();
 
         public Builder skin(PlayerSkin skin) {
             this.skin = skin;
@@ -158,6 +177,11 @@ public class PlayerNPC extends LivingEntity {
 
         public Builder handleInteraction(Consumer<PlayerEntityInteractEvent> interaction) {
             this.interaction = interaction;
+            return this;
+        }
+
+        public Builder addHologram(HologramLine hologramLine) {
+            holograms.add(hologramLine);
             return this;
         }
 
