@@ -1,4 +1,4 @@
-package dev.ohate;
+package dev.ohate.hologram;
 
 import net.kyori.adventure.text.Component;
 import net.minestom.server.entity.Entity;

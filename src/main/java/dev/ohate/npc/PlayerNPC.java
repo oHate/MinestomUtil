@@ -1,6 +1,7 @@
-package dev.ohate;
+package dev.ohate.npc;
 
 import dev.ohate.commonlib.StringUtil;
+import dev.ohate.hologram.HologramLine;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
